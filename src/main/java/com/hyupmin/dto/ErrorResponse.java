@@ -12,3 +12,4 @@ public class ErrorResponse {
     private final String path;     // 오류가 발생한 URL 경로
     // 필요시 timestamp 등 추가 가능
 }
+

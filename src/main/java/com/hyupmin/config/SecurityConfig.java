@@ -33,7 +33,7 @@ public class SecurityConfig {
                     corsConfiguration.setAllowedOrigins(java.util.List.of(
                             "http://localhost:3000",
                             "http://localhost:5173",
-                            "https://your-frontend-domain.com"  // 프론트엔드 배포 도메인
+                            "http://3.22.89.177"  // 프론트엔드 EC2 (Elastic IP)
                     ));
                     corsConfiguration.setAllowedMethods(java.util.List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                     corsConfiguration.setAllowedHeaders(java.util.List.of("*"));
