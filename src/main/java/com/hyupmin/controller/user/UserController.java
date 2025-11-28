@@ -23,13 +23,33 @@ public class UserController {
     private final JwtTokenProvider jwtTokenProvider;
 
     /**
+     * 이메일 중복 확인
+     */
+    @GetMapping("/check-email")
+    public ResponseEntity<?> checkEmail(@RequestParam String email) {
+        boolean exists = userService.isEmailExists(email);
+
+        if (exists) {
+            return ResponseEntity.ok(Map.of(
+                    "available", false,
+                    "message", "이미 사용 중인 이메일입니다."
+            ));
+        } else {
+            return ResponseEntity.ok(Map.of(
+                    "available", true,
+                    "message", "사용 가능한 이메일입니다."
+            ));
+        }
+    }
+
+    /**
      * 회원가입 (비밀번호 암호화 + 검증)
      */
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody UserSignupRequestDTO request) {
         try {
             User savedUser = userService.registerUser(request);
-            return ResponseEntity.ok("회원가입 성공 \nEmail: " + savedUser.getEmail( ));
+            return ResponseEntity.ok("회원가입 성공 \nEmail: " + savedUser.getEmail());
         } catch (IllegalArgumentException e) {
             // 이메일 중복 등의 예외 처리
             return ResponseEntity.status(400).body(e.getMessage());
@@ -48,7 +68,7 @@ public class UserController {
         String password = request.getPassword();
 
         User user = userService.findByEmail(email);
-        
+
         // 존재하지 않는 이메일인 경우
         if (user == null) {
             return ResponseEntity.status(404).body("해당 이메일의 사용자가 존재하지 않습니다.");
@@ -84,6 +104,7 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+
     /**
      * 프로필 수정
      */
@@ -103,6 +124,36 @@ public class UserController {
             return ResponseEntity.internalServerError().body("서버 내부 오류가 발생했습니다.");
         }
     }
+
+    /**
+     * 비밀번호 확인 (본인 인증용)
+     */
+    @PostMapping("/verify-password")
+    public ResponseEntity<?> verifyPassword(
+            @AuthenticationPrincipal String userEmail,
+            @RequestBody PasswordVerifyRequest request) {
+        try {
+            boolean isValid = userService.verifyPassword(userEmail, request.getPassword());
+
+            if (isValid) {
+                return ResponseEntity.ok(Map.of(
+                        "valid", true,
+                        "message", "비밀번호가 확인되었습니다."
+                ));
+            } else {
+                return ResponseEntity.status(401).body(Map.of(
+                        "valid", false,
+                        "message", "비밀번호가 일치하지 않습니다."
+                ));
+            }
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "valid", false,
+                    "message", e.getMessage()
+            ));
+        }
+    }
+
     /**
      * 비밀번호 변경
      */
